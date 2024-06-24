@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: '*/', url: "${REPO_URL}"
+                checkout scm
             }
         }
 
@@ -37,7 +37,7 @@ pipeline {
                     sh 'docker stop ${CONTAINER_NAME} || true'
                     sh 'docker rm ${CONTAINER_NAME} || true'
                     sh '''
-                        docker run -d -p 82:80 --name ${CONTAINER_NAME} \
+                        docker run -itd -p 82:80 --name ${CONTAINER_NAME} \
                         -v $WORKSPACE:/var/www/html \
                         ubuntu:latest /bin/bash -c "apt-get update && apt-get install -y apache2 && apache2ctl -D FOREGROUND"
                     '''
