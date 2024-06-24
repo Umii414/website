@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        REPO_URL = 'https://github.com/Umii414/website.git'
+        CONTAINER_NAME = 'website_container'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: '*/', url: "${REPO_URL}"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    docker.image('ubuntu:latest').inside {
+                        sh '''
+                            apt-get update
+                            apt-get install -y apache2
+                            rm -rf /var/www/html/*
+                            cp -r * /var/www/html/
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Publish') {
+            when {
+                branch 'master'
+            }
+            steps {
+                script {
+                    sh 'docker stop ${CONTAINER_NAME} || true'
+                    sh 'docker rm ${CONTAINER_NAME} || true'
+                    sh '''
+                        docker run -d -p 82:80 --name ${CONTAINER_NAME} \
+                        -v $WORKSPACE:/var/www/html \
+                        ubuntu:latest /bin/bash -c "apt-get update && apt-get install -y apache2 && apache2ctl -D FOREGROUND"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
