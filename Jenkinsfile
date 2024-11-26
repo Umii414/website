@@ -17,8 +17,7 @@ pipeline {
             steps {
                 script {
                     echo "Building the product..."
-                    // Example of building a Docker image
-                    sh 'docker build -t myapp .'
+                    // Add specific build steps if needed
                 }
             }
         }
@@ -29,9 +28,9 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Docker Login (if pushing images)
+                        // Docker Login
                         echo 'Logging into Docker registry...'
-                        docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS) {
+                        docker.withRegistry('', DOCKER_CREDENTIALS) {
                             // Stop and remove any existing container with the same name
                             echo 'Cleaning up old containers...'
                             sh '''
@@ -45,7 +44,7 @@ pipeline {
                             docker run -d -p 82:80 --name website-container ubuntu:latest
                             '''
                             
-                            // Install Apache in the container
+                            // Install Apache inside the container
                             echo 'Installing Apache in the container...'
                             sh '''
                             docker exec website-container bash -c "apt-get update && apt-get install -y apache2"
